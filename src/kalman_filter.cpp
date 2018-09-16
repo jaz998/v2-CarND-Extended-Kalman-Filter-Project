@@ -1,5 +1,6 @@
 #include "kalman_filter.h"
 #include <math.h>
+#include <iostream>
 
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
@@ -37,14 +38,14 @@ void KalmanFilter::Update(const VectorXd &z) {
   TODO:
     * update the state by using Kalman Filter equations
   */
-	VectorXd y = z - H_ * x_;
-	MatrixXd Ht = H_.transpose();
-	MatrixXd S = H_ * P_*Ht + R_;
-	MatrixXd Si = S.inverse();
-	MatrixXd K = P_ * Ht*Si;
 
-	// New state
-	x_ = x_ + (K*y);
+	std::cout << "Calling EKF update function" << std::endl;
+	// Measurement Update
+	VectorXd y = z - H_ * x_;
+	MatrixXd S = H_ * P_*H_.transpose() + R_;
+	MatrixXd K = P_ * H_.transpose()*S.inverse();
+
+	x_ = x_ + (K * y); // Updating the state variables
 	MatrixXd I = MatrixXd::Identity(4, 4);
 	P_ = (I - K * H_)*P_;
 }
@@ -60,7 +61,6 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
 	float vy = x_[3];
 
 	// If rho == 0, skip the update step to avoid dividing by zero.
-	// This is crude but should be fairly robust on our data set.
 	if (px == 0. && py == 0.)
 		return;
 

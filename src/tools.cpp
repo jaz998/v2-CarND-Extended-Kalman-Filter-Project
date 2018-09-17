@@ -63,11 +63,9 @@ MatrixXd Tools::CalculateJacobian(const VectorXd& x_state) {
 	double vx = x_state[2];
 	double vy = x_state[3];
 
-	//pre-compute a set of terms to avoid repeated calculation
-	//double c1 = px * px + py * py;
+	//pre-calculate a set of terms to avoid repeated calculation
 	double squared_sum = pow(px, 2) + pow(py, 2);
-	double c2 = sqrt(squared_sum);
-	double c3 = (squared_sum*c2);
+	double squared_root = sqrt(pow(px, 2) + pow(py, 2));
 
 	//check division by zero
 	if (fabs(squared_sum) < 0.0001) {
@@ -76,9 +74,9 @@ MatrixXd Tools::CalculateJacobian(const VectorXd& x_state) {
 	}
 
 	//compute the Jacobian matrix
-	Hj << (px / c2), (py / c2), 0, 0,
+	Hj << (px / squared_root), (py / squared_root), 0, 0,
 		-(py / squared_sum), (px / squared_sum), 0, 0,
-		py*(vx*py - vy * px) / c3, px*(px*vy - py * vx) / c3, px / c2, py / c2;
+		py*(vx*py - vy * px) / pow(squared_sum, 3.0 / 2.0), px*(px*vy - py * vx) / pow(squared_sum, 3.0 / 2.0), px / squared_root, py / squared_root;
 
 	return Hj;
 }

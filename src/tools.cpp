@@ -10,39 +10,41 @@ Tools::Tools() {}
 Tools::~Tools() {}
 
 VectorXd Tools::CalculateRMSE(const vector<VectorXd> &estimations,
-                              const vector<VectorXd> &ground_truth) {
-  /**
-  TODO:
-    * Calculate the RMSE here.
-  */
-	VectorXd rmse(4);
-	rmse << 0, 0, 0, 0;
+	const vector<VectorXd> &ground_truth) {
+	/**
+	TODO:
+	* Calculate the RMSE here.
+	*/
+	VectorXd RMSE(4);
+	RMSE << 0, 0, 0, 0;
 
-	if (estimations.size() == 0) {
-		cout << "ERROR - CalculateRMSE () - The estimations vector is empty" << endl;
-		return rmse;
+	//Perform validation of the input data
+	if (estimations.size() == 0 || ground_truth.size() == 0) {
+		cout << "Input validation failed: either estimations or ground truth has zero size" << endl;
+		return RMSE;
 	}
-
-	if (ground_truth.size() == 0) {
-		cout << "ERROR - CalculateRMSE () - The ground-truth vector is empty" << endl;
-		return rmse;
-	}
-
-	unsigned int n = estimations.size();
-	if (n != ground_truth.size()) {
-		cout << "ERROR - CalculateRMSE () - The ground-truth and estimations vectors must have the same size." << endl;
-		return rmse;
+	if (estimations.size() != ground_truth.size()) {
+		cout << "Input validation failed: estimations and groud truths have different sizes" << endl;
+		return RMSE;
 	}
 
 	for (unsigned int i = 0; i < estimations.size(); ++i) {
 		VectorXd diff = estimations[i] - ground_truth[i];
-		diff = diff.array()*diff.array();
-		rmse += diff;
+		//cout << "Estimation size " << estimations.size() << endl;
+		//cout << "Diff " << diff << endl;
+		//cout << "line 37 " << endl;
+		diff = pow(diff.array(), 2);
+		RMSE = diff + RMSE;
+		//cout << "Showing temp RMSE " << RMSE << endl;
+		//getchar();
 	}
+	RMSE = RMSE / estimations.size();
+	//cout << "Estimation size " << estimations.size() << endl;
+	RMSE = RMSE.array().sqrt();
+	//cout << "Printing RMSE " << endl;
+	//cout << RMSE << endl;
+	return RMSE;
 
-	rmse = rmse / n;
-	rmse = rmse.array().sqrt();
-	return rmse;
 }
 
 MatrixXd Tools::CalculateJacobian(const VectorXd& x_state) {

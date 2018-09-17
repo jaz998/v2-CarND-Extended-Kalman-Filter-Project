@@ -4,6 +4,7 @@
 
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
+using namespace std;
 
 // Please note that the Eigen library does not initialize 
 // VectorXd or MatrixXd objects with zeros upon creation.
@@ -65,23 +66,33 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
 		return;
 
 
-	VectorXd hofx(3);
-	float rho = sqrt(px*px + py * py);
-	hofx << rho, atan2(py, px), (px*vx + py * vy) / rho;
 
-	// Update the state using Extended Kalman Filter equations
-	VectorXd y = z - hofx;
+	float rho = sqrt(pow(px, 2) + pow(py, 2));
+	float phi = atan2(py, px);
+	float rho_dot = ((px*vx) + (py*vy)) / sqrt(pow(px, 2) + pow(py, 2));
+	cout << "rho, phi, rho_dot " << rho << "," << phi << "," << rho_dot << endl;
+	VectorXd h = VectorXd(3);
+	h << rho, phi, rho_dot;
+	VectorXd y = z - h;
+
+	// Normalize the angle 
 	if (y[1] > M_PI)
 		y[1] -= 2.f*M_PI;
 	if (y[1] < -M_PI)
 		y[1] += 2.f*M_PI;
-	MatrixXd Hjt = H_.transpose();
-	MatrixXd S = H_ * P_*Hjt + R_;
-	MatrixXd Si = S.inverse();
-	MatrixXd K = P_ * Hjt*Si;
 
-	// Compute new state
-	x_ = x_ + (K*y);
+
+	MatrixXd S = H_ * P_*H_.transpose() + R_;
+	cout << "S " << endl;
+	cout << S << endl;
+
+	MatrixXd K = P_ * H_.transpose()*S.inverse();
+	cout << "K " << endl;
+	cout << K << endl;
+
+	x_ = x_ + K * y;
+	cout << "x_ " << x_;
 	MatrixXd I = MatrixXd::Identity(4, 4);
 	P_ = (I - K * H_)*P_;
+	cout << "P_ " << P_ << endl;
 }
